@@ -69,6 +69,10 @@ SUBROUTINE BOEVECS
      CALL PRG_GET_FLEVEL(EVALS,KBT,BNDFIL,BREAKTOL,CHEMPOT)
 
 #else
+     ! make a guess for chemical potential as 0K case
+     LOOPTARGET = NINT(OCCTARGET)
+     CHEMPOT = HALF*(EVALS(LOOPTARGET) + EVALS(LOOPTARGET + 1))
+     IF(VERBOSE >= 2) WRITE(*,*) "Initial Chemical potential = ",CHEMPOT
 
      DO WHILE (ABS(OCCERROR) .GT. BREAKTOL .AND. ITER .LT. 100)
 
