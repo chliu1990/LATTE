@@ -74,6 +74,25 @@ SUBROUTINE KBOEVECS
 
   IF (KBT .GT. 0.001) THEN  ! This bit is for a finite electronic temperature
 
+   ! make a guess for chemical potential as 0K case (copied from 0K case)
+   LOOPTARGET = NINT(OCCTARGET)
+   !!! Find the chemical potential - we need the looptarget'th lowest
+   !!! eigenvalue
+   COUNT = 0
+   DO I = 1, NKTOT
+      DO J = 1, HDIM
+         COUNT = COUNT + 1
+         CPLIST(COUNT) = KEVALS(J,I)
+      ENDDO
+   ENDDO
+   DO I = 1, LOOPTARGET
+      CHEMPOT = MINVAL(CPLIST)
+      CPLOC = MINLOC(CPLIST)
+      CPLIST(CPLOC(1)) = 1.0D12 ! We do this so we don't get this eigenvalue again on the next loop
+   ENDDO
+   CHEMPOT = HALF * (CHEMPOT + MINVAL(CPLIST)) ! I found this is closer to real value
+   IF(VERBOSE >= 2) WRITE(*,*) "Initial Chemical potential (kbodirect) = ",CHEMPOT
+
      DO WHILE (ABS(OCCERROR) .GT. BREAKTOL .AND. ITER .LT. 100)
 
         ITER = ITER + 1
@@ -125,6 +144,8 @@ SUBROUTINE KBOEVECS
      IF (ITER .EQ. 100) THEN
         CALL ERRORS("kbodirect","Newton-Raphson scheme to find the Chemical potential does not converge")
      ENDIF
+
+     IF(VERBOSE >= 2)WRITE(*,*)"Occupation error = ",OCCERROR," Chemical potential = ",CHEMPOT
 
      ! Now we have the chemical potential we can build the density matrix
 
